@@ -148,6 +148,8 @@ github.com/metacubex/kcp-go v0.0.0-20260105040817-550693377604 h1:hJwCVlE3ojViC3
 github.com/metacubex/kcp-go v0.0.0-20260105040817-550693377604/go.mod h1:lpmN3m269b3V5jFCWtffqBLS4U3QQoIid9ugtO+OhVc=
 github.com/metacubex/mhurl v0.1.0 h1:ZdW4Zxe3j3uJ89gNytOazHu6kbHn5owutN/VfXOI8GE=
 github.com/metacubex/mhurl v0.1.0/go.mod h1:2qpQImCbXoUs6GwJrjuEXKelPyoimsIXr07eNKZdS00=
+github.com/metacubex/mihomo v1.19.29 h1:ZBQ+AnqyLdulDGoqYY8D6FUyUodKiUkETREN17+t3xI=
+github.com/metacubex/mihomo v1.19.29/go.mod h1:pfMBadTHff29rWUChmN90UVHJNg8bS7iZWgB4XB8WgQ=
 github.com/metacubex/mlkem v0.1.0 h1:wFClitonSFcmipzzQvax75beLQU+D7JuC+VK1RzSL8I=
 github.com/metacubex/mlkem v0.1.0/go.mod h1:amhaXZVeYNShuy9BILcR7P0gbeo/QLZsnqCdL8U2PDQ=
 github.com/metacubex/nftables v0.0.0-20260426003805-208c2c1ba2cb h1:wk6mHYPURSUvWcUv72gNP79oiylFsscBSDPJ6ieV6Iw=
@@ -164,8 +166,6 @@ github.com/metacubex/sevenzip v1.6.4 h1:OIL+DeOeSAbKNsjqxcYUMiarRmX6Kaxakb0GT7E9
 github.com/metacubex/sevenzip v1.6.4/go.mod h1:FP3X9bzFKj9wPxifGN9B3w2fIEicMjzKYIGIhnu+1pw=
 github.com/metacubex/sing v0.5.7 h1:8OC+fhKFSv/l9ehEhJRaZZAOuthfZo68SteBVLe8QqM=
 github.com/metacubex/sing v0.5.7/go.mod h1:ypf0mjwlZm0sKdQSY+yQvmsbWa0hNPtkeqyRMGgoN+w=
-github.com/metacubex/sing-mux v0.3.10 h1:r5CuZ/KuwFsEcRRwpLvzLncW4fDzNfmSEcBEWcy/+94=
-github.com/metacubex/sing-mux v0.3.10/go.mod h1:8bT7ZKT3clRrJjYc/x5CRYibC1TX/bK73a3r3+2E+Fc=
 github.com/metacubex/sing-quic v0.0.0-20260527143057-68e10a6afdc3 h1:PnMby5+kZXTl/CFDHfxMbMTaSRD+uMKMsrDYVQyAmX8=
 github.com/metacubex/sing-quic v0.0.0-20260527143057-68e10a6afdc3/go.mod h1:6ayFGfzzBE85csgQkM3gf4neFq6s0losHlPRSxY+nuk=
 github.com/metacubex/sing-shadowsocks v0.2.12 h1:Wqzo8bYXrK5aWqxu/TjlTnYZzAKtKsaFQBdr6IHFaBE=
@@ -227,6 +227,8 @@ github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a h1:ObwtHN2VpqE0ZN
 github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a/go.mod h1:xLnfdiJbSp8rNqYEdIW/6eDO4mVoogml14Bh2hSiFpM=
 github.com/samber/lo v1.53.0 h1:t975lj2py4kJPQ6haz1QMgtId2gtmfktACxIXArw3HM=
 github.com/samber/lo v1.53.0/go.mod h1:4+MXEGsJzbKGaUEQFKBq2xtfuznW9oz/WrgyzMzRoM0=
+github.com/saywhenn/sing-mux v0.3.10 h1:2Sb+I/idhYXs7A9+rh8f1U+xyc9V9mU3KKnpBDDyqTY=
+github.com/saywhenn/sing-mux v0.3.10/go.mod h1:8bT7ZKT3clRrJjYc/x5CRYibC1TX/bK73a3r3+2E+Fc=
 github.com/sina-ghaderi/poly1305 v0.0.0-20220724002748-c5926b03988b h1:rXHg9GrUEtWZhEkrykicdND3VPjlVbYiLdX9J7gimS8=
 github.com/sina-ghaderi/poly1305 v0.0.0-20220724002748-c5926b03988b/go.mod h1:X7qrxNQViEaAN9LNZOPl9PfvQtp3V3c7LTo0dvGi0fM=
 github.com/sina-ghaderi/rabaead v0.0.0-20220730151906-ab6e06b96e8c h1:DjKMC30y6yjG3IxDaeAj3PCoRr+IsO+bzyT+Se2m2Hk=
