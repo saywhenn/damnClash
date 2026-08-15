@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, SyncSender, TrySendError};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 #[cfg(unix)]
 use std::path::Path;
@@ -47,9 +47,15 @@ const TYPE_DATA: u8 = 0x03;
 const TYPE_ERROR: u8 = 0x04;
 
 const MAX_FRAME_SIZE: usize = 64 * 1024 * 1024;
-const MAX_PENDING_MESSAGES: usize = 8;
+const MAX_PENDING_MESSAGES: usize = 256;
 const IO_POLL_INTERVAL: Duration = Duration::from_millis(20);
 const ACCEPT_POLL_INTERVAL: Duration = Duration::from_millis(50);
+// Callers fan out: a group delay test issues one request per proxy at once, so
+// a full queue means the writer is behind, not that the message is surplus.
+// Wait it out, but never past this deadline, so a wedged peer still surfaces.
+const SEND_QUEUE_TIMEOUT: Duration = Duration::from_secs(5);
+const SEND_RETRY_INTERVAL: Duration = Duration::from_millis(2);
+const MIN_WRITE_BACKOFF: Duration = Duration::from_millis(1);
 
 fn make_frame(ty: u8, payload: &[u8]) -> Vec<u8> {
     let mut frame = Vec::with_capacity(1 + payload.len());
@@ -132,10 +138,30 @@ pub fn send_ipc_message(data: Vec<u8>) -> Result<(), String> {
         .clone()
         .ok_or("IPC client is not connected")?;
 
-    match tx.try_send(data) {
-        Ok(()) => Ok(()),
-        Err(TrySendError::Full(_)) => Err("IPC send queue is full".into()),
-        Err(TrySendError::Disconnected(_)) => Err("IPC client is disconnected".into()),
+    enqueue_message(&tx, data, SEND_QUEUE_TIMEOUT)
+}
+
+fn enqueue_message(
+    tx: &SyncSender<Vec<u8>>,
+    data: Vec<u8>,
+    timeout: Duration,
+) -> Result<(), String> {
+    let deadline = Instant::now() + timeout;
+    let mut pending = data;
+    loop {
+        match tx.try_send(pending) {
+            Ok(()) => return Ok(()),
+            Err(TrySendError::Disconnected(_)) => {
+                return Err("IPC client is disconnected".into());
+            }
+            Err(TrySendError::Full(rejected)) => {
+                if Instant::now() >= deadline {
+                    return Err("IPC send queue is full".into());
+                }
+                pending = rejected;
+                thread::sleep(SEND_RETRY_INTERVAL);
+            }
+        }
     }
 }
 
@@ -163,6 +189,7 @@ fn write_all_interruptible(
     mut data: &[u8],
     connection_running: &AtomicBool,
 ) -> io::Result<()> {
+    let mut backoff = MIN_WRITE_BACKOFF;
     while !data.is_empty() {
         if !connection_running.load(Ordering::SeqCst) || !server_active() {
             return Err(io::Error::new(
@@ -175,10 +202,18 @@ fn write_all_interruptible(
         let result = normalize_windows_pipe_write(result);
         match result {
             Ok(0) => return Err(io::ErrorKind::WriteZero.into()),
-            Ok(written) => data = &data[written..],
+            Ok(written) => {
+                data = &data[written..];
+                backoff = MIN_WRITE_BACKOFF;
+            }
             Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
             Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                thread::sleep(IO_POLL_INTERVAL);
+                // A Windows PIPE_NOWAIT handle reports a full buffer through a
+                // zero-byte write, and every frame costs two writes. A flat
+                // 20ms wait there parks the whole queue behind one frame, so
+                // back off from 1ms instead.
+                thread::sleep(backoff);
+                backoff = (backoff * 2).min(IO_POLL_INTERVAL);
             }
             Err(e) => return Err(e),
         }
@@ -557,6 +592,55 @@ mod tests {
             normalize_windows_pipe_write(Err(error)).unwrap_err().kind(),
             io::ErrorKind::BrokenPipe,
         );
+    }
+
+    #[test]
+    fn enqueue_message_waits_for_a_draining_writer() {
+        let (tx, rx) = mpsc::sync_channel::<Vec<u8>>(1);
+        tx.send(b"first".to_vec()).unwrap();
+        let writer = thread::spawn(move || {
+            thread::sleep(Duration::from_millis(30));
+            (rx.recv().unwrap(), rx.recv().unwrap())
+        });
+
+        enqueue_message(&tx, b"second".to_vec(), Duration::from_secs(5)).unwrap();
+
+        assert_eq!(
+            writer.join().unwrap(),
+            (b"first".to_vec(), b"second".to_vec())
+        );
+    }
+
+    #[test]
+    fn enqueue_message_gives_up_on_a_writer_that_never_drains() {
+        let (tx, _rx) = mpsc::sync_channel::<Vec<u8>>(1);
+        tx.send(b"first".to_vec()).unwrap();
+
+        assert_eq!(
+            enqueue_message(&tx, b"second".to_vec(), Duration::from_millis(20)).unwrap_err(),
+            "IPC send queue is full"
+        );
+    }
+
+    #[test]
+    fn enqueue_message_reports_a_gone_writer_without_waiting() {
+        let (tx, rx) = mpsc::sync_channel::<Vec<u8>>(1);
+        drop(rx);
+
+        assert_eq!(
+            enqueue_message(&tx, b"first".to_vec(), Duration::from_secs(30)).unwrap_err(),
+            "IPC client is disconnected"
+        );
+    }
+
+    #[test]
+    fn write_backoff_starts_short_and_is_capped() {
+        let mut backoff = MIN_WRITE_BACKOFF;
+        assert_eq!(backoff, Duration::from_millis(1));
+        for _ in 0..10 {
+            backoff = (backoff * 2).min(IO_POLL_INTERVAL);
+        }
+        assert_eq!(backoff, IO_POLL_INTERVAL);
     }
 
     #[test]
