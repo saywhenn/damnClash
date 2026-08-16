@@ -1,0 +1,35 @@
+name: Generate Android Keystore
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate-keystore:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate Android keystore
+        run: |
+          keytool -genkeypair \
+            -v \
+            -keystore follow-clash-release.jks \
+            -alias follow-clash \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            -dname "CN=Follow Clash, OU=Android, O=Follow Clash, L=Unknown, ST=Unknown, C=US"
+
+      - name: Verify keystore
+        run: |
+          keytool -list \
+            -keystore follow-clash-release.jks \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}"
+
+      - name: Upload keystore
+        uses: actions/upload-artifact@v4
+        with:
+          name: follow-clash-keystore
+          path: follow-clash-release.jks
+          retention-days: 7
