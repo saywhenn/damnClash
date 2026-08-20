@@ -229,6 +229,7 @@ class VpnService : SystemVpnService(), ManagedService {
         try {
             modules.start()
             handleStart(requireNotNull(ServiceConfig.vpnOptions) { "VPN options are missing" })
+Core.suspended(false)
         } catch (error: Exception) {
             stop()
             throw error
