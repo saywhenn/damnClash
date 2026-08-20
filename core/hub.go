@@ -360,7 +360,7 @@ func handleSideLoadExternalProvider(providerName string, data []byte, fn func(va
 
 func handleSuspend(suspended bool) bool {
 	if suspended {
-    log.DebugIn("peren: fuck suspend")
+   # log.DebugIn("peren: fuck suspend")
     return true 
 	}
 
