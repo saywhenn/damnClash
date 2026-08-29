@@ -21,19 +21,15 @@ class ResourcesView extends StatelessWidget {
     final appLocalizations = context.appLocalizations;
     return CommonScaffold(
       title: context.appLocalizations.resources,
-      body: Consumer(
-        builder: (_, ref, _) {
-          return generateListView([
-            ...generateSection(
-              title: appLocalizations.geoResources,
-              items: [
-                for (final geoResource in geoResources)
-                  _GeoResourceListItem(geoResource),
-              ],
-            ),
-          ]);
-        },
-      ),
+      body: generateListView([
+        ...generateSection(
+          title: appLocalizations.geoResources,
+          items: [
+            for (final geoResource in geoResources)
+              _GeoResourceListItem(geoResource),
+          ],
+        ),
+      ]),
     );
   }
 }
