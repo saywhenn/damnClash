@@ -23,13 +23,15 @@ class ResourcesView extends StatelessWidget {
       title: context.appLocalizations.resources,
       body: Consumer(
         builder: (_, ref, _) {
-          return generateSection(
+          return generateListView([
+            ...generateSection(
               title: appLocalizations.geoResources,
               items: [
                 for (final geoResource in geoResources)
                   _GeoResourceListItem(geoResource),
               ],
-          );
+            ),
+          ]);
         },
       ),
     );
