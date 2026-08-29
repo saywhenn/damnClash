@@ -246,17 +246,17 @@ func updateConfig(params *UpdateParams) {
 		}
 	}
 
-	if params.GeoAutoUpdate != nil {
-		updater.SetGeoAutoUpdate(*params.GeoAutoUpdate)
-	}
-	if params.GeoUpdateInterval != nil {
-		updater.SetGeoUpdateInterval(*params.GeoUpdateInterval)
-	}
+	// if params.GeoAutoUpdate != nil {
+	// 	updater.SetGeoAutoUpdate(*params.GeoAutoUpdate)
+	// }
+	// if params.GeoUpdateInterval != nil {
+	// 	updater.SetGeoUpdateInterval(*params.GeoUpdateInterval)
+	// }
 
 	updateListeners()
-	if updater.GeoAutoUpdate() {
-		updater.RegisterGeoUpdaterWithCancel()
-	}
+	// if updater.GeoAutoUpdate() {
+	// 	updater.RegisterGeoUpdaterWithCancel()
+	// }
 }
 
 func applyConfig(params *SetupParams) error {

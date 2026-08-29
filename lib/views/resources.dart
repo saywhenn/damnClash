@@ -23,76 +23,13 @@ class ResourcesView extends StatelessWidget {
       title: context.appLocalizations.resources,
       body: Consumer(
         builder: (_, ref, _) {
-          final vm2 = ref.watch(
-            patchClashConfigProvider.select(
-              (state) => VM2(state.geoAutoUpdate, state.geoUpdateInterval),
-            ),
-          );
-          return generateListView([
-            ...generateSection(
-              title: appLocalizations.geoOptions,
-              items: [
-                ListItem.toggle(
-                  title: Text(appLocalizations.geoAutoUpdate),
-                  value: vm2.a,
-                  onChanged: (value) {
-                    ref
-                        .read(patchClashConfigProvider.notifier)
-                        .update(
-                          (state) => state.copyWith(geoAutoUpdate: value),
-                        );
-                  },
-                ),
-                ListItem.input(
-                  title: Text(appLocalizations.geoAutoUpdateInterval),
-                  trailing: Text(
-                    appLocalizations.hoursCount(vm2.b),
-                    style: context.textTheme.bodyMedium?.toSoftBold,
-                  ),
-                  suffixText: appLocalizations.hours,
-                  dialogTitle: appLocalizations.geoAutoUpdateInterval,
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return appLocalizations.emptyTip(
-                        appLocalizations.geoAutoUpdateInterval,
-                      );
-                    }
-                    final interval = int.tryParse(value);
-                    if (interval == null) {
-                      return appLocalizations.numberTip(
-                        appLocalizations.geoAutoUpdateInterval,
-                      );
-                    }
-                    if (interval <= 0) {
-                      return appLocalizations.geoAutoUpdateIntervalTip;
-                    }
-                    return null;
-                  },
-                  value: vm2.b.toString(),
-                  onChanged: (value) {
-                    final intValue = int.tryParse(value ?? '') ?? 0;
-                    if (intValue <= 0) {
-                      return;
-                    }
-                    ref
-                        .read(patchClashConfigProvider.notifier)
-                        .update(
-                          (state) =>
-                              state.copyWith(geoUpdateInterval: intValue),
-                        );
-                  },
-                ),
-              ],
-            ),
-            ...generateSection(
+          return generateSection(
               title: appLocalizations.geoResources,
               items: [
                 for (final geoResource in geoResources)
                   _GeoResourceListItem(geoResource),
               ],
-            ),
-          ]);
+          );
         },
       ),
     );
