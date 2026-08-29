@@ -198,7 +198,54 @@ jobs:
 
       - name: Setup
         run: dart setup.dart ${{ matrix.platform }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }} -v
+      - name: Diagnose Inno Setup path
+        if: failure() && matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          Write-Host "Checked-out commit: $env:GITHUB_SHA"
 
+          $repoIcon = Join-Path $env:GITHUB_WORKSPACE `
+            'windows\runner\resources\app_icon.ico'
+
+          Write-Host "Expected icon: $repoIcon"
+          Write-Host "Expected icon exists: $(Test-Path -LiteralPath $repoIcon)"
+
+          if (Test-Path -LiteralPath $repoIcon) {
+            Get-Item -LiteralPath $repoIcon |
+              Format-List FullName, Length
+
+            Get-FileHash -LiteralPath $repoIcon -Algorithm SHA256
+          }
+
+          $iss = Get-ChildItem `
+            -Path (Join-Path $env:GITHUB_WORKSPACE 'dist') `
+            -Filter '*setup_exe.iss' |
+            Select-Object -First 1
+
+          if ($null -eq $iss) {
+            Write-Host "Generated ISS not found"
+            exit 0
+          }
+
+          $lines = Get-Content -LiteralPath $iss.FullName
+          $line15 = $lines[14]
+
+          Write-Host "ISS file: $($iss.FullName)"
+          Write-Host "ISS line 15: $line15"
+
+          $iconValue = $line15 -replace '^SetupIconFile=', ''
+          $iconValue = $iconValue.Trim().Trim('"')
+
+          if (-not [IO.Path]::IsPathRooted($iconValue)) {
+            $resolved = [IO.Path]::GetFullPath(
+              (Join-Path $iss.DirectoryName $iconValue)
+            )
+          } else {
+            $resolved = $iconValue
+          }
+
+          Write-Host "Resolved from ISS directory: $resolved"
+          Write-Host "Resolved path exists: $(Test-Path -LiteralPath $resolved)"
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
