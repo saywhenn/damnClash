@@ -534,8 +534,8 @@ var refreshHealthChecks = defaultRefreshHealthChecks
 
 func handleSuspend(suspended bool) bool {
 	if suspended {
-   // log.DebugIn("peren: fuck suspend")
-    return true 
+		// log.DebugIn("peren: fuck suspend")
+		return true
 	}
 
 	if tunnel.Status() == tunnel.Suspend {
