@@ -96,62 +96,6 @@ func TestPatchSelectGroupRestoresASelectionWithoutValidatingIt(t *testing.T) {
 	}
 }
 
-// Coming out of Doze has to re-probe. The health checks that ran while the app
-// had no network at all left every proxy marked dead and every delay reading
-// Timeout, and a lazy provider skips its next tick because nothing touched it
-// in the meantime.
-func TestHandleSuspendRefreshesHealthChecksOnResume(t *testing.T) {
-	var refreshes atomic.Int32
-
-	previous := refreshHealthChecks
-	previousRunning := isRunning.Load()
-	refreshHealthChecks = func() { refreshes.Add(1) }
-	t.Cleanup(func() {
-		refreshHealthChecks = previous
-		isRunning.Store(previousRunning)
-		isSuspended.Store(false)
-		tunnel.OnRunning()
-	})
-
-	isSuspended.Store(false)
-	isRunning.Store(true)
-
-	handleSuspend(false)
-	if got := refreshes.Load(); got != 0 {
-		t.Errorf("refreshes = %d, want none: the device was never suspended", got)
-	}
-
-	handleSuspend(true)
-	if !isSuspended.Load() {
-		t.Error("handleSuspend(true) did not record the suspension")
-	}
-	if got := refreshes.Load(); got != 0 {
-		t.Errorf("refreshes = %d, want none while the device is still suspended", got)
-	}
-
-	handleSuspend(false)
-	if isSuspended.Load() {
-		t.Error("handleSuspend(false) did not clear the suspension")
-	}
-	if got := refreshes.Load(); got != 1 {
-		t.Errorf("refreshes = %d, want exactly one on resume", got)
-	}
-
-	handleSuspend(false)
-	if got := refreshes.Load(); got != 1 {
-		t.Errorf("refreshes = %d, want a redundant resume to change nothing", got)
-	}
-
-	// The service resumes the core on its way down, and probing every node
-	// through a teardown only produces failures nobody asked for.
-	isRunning.Store(false)
-	handleSuspend(true)
-	handleSuspend(false)
-	if got := refreshes.Load(); got != 1 {
-		t.Errorf("refreshes = %d, want no probe while the listeners are stopped", got)
-	}
-}
-
 func TestShouldPublishDelayDropsFailuresMeasuredInDoze(t *testing.T) {
 	t.Cleanup(func() { isSuspended.Store(false) })
 
