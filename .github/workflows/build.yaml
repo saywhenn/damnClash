@@ -431,25 +431,6 @@ jobs:
         run: |
           yq -i '.hooks.user_defines.setup.build_assets = false | .hooks.user_defines.rust_api.build_assets = false' pubspec.yaml
 
-      - name: Generate release notes
-        shell: bash
-        env:
-          IS_STABLE: ${{ env.IS_STABLE }}
-          TAG: ${{ env.TAG }}
-        run: |
-          target=()
-          if [[ "$IS_STABLE" == 'true' ]]; then
-            target=(--tag "$TAG")
-          else
-            dart run tool/changelog.dart build --unreleased
-          fi
-          dart run tool/changelog.dart render release "${target[@]}" --out release.md
-
-      - name: Patch release.md
-        run: |
-          version=$(echo "${{ github.ref_name }}" | sed 's/^v//')
-          sed "s|VERSION|$version|g" ./.github/release_template.md >> release.md
-
       - name: Generate sha256
         if: ${{ env.IS_STABLE == 'true' }}
         run: |
@@ -462,4 +443,3 @@ jobs:
         with:
           tag_name: ${{ env.TAG }}
           files: ./dist/*
-          body_path: './release.md'
