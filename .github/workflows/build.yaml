@@ -276,7 +276,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.TAG }}
           submodules: recursive
+          fetch-depth: 0
 
       - name: Setup Android Signing
         if: startsWith(matrix.platform,'android')
@@ -408,6 +410,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.TAG }}
           fetch-depth: 0
 
       - name: Download
